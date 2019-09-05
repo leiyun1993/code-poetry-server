@@ -8,9 +8,34 @@ module.exports = class extends Base {
 
   async getArticleListAction() {
     if (this.isGet) {
+      let type = this.get("type");
       let articleModel = this.model("cp_article");
       let res = await articleModel.page(this.get("page") || 1, this.get("size") || 3).where({
-        type: 1
+        type: type||1
+      }).order('id DESC').countSelect();
+      if (think.isEmpty(res.data)) {
+        this.success({
+          list: [],
+          total: res.count
+        })
+      } else {
+        this.success({
+          list: res.data,
+          total: res.count
+        })
+      }
+
+    } else {
+      this.status = 404;
+    }
+
+  }
+
+  async getCodeListAction() {
+    if (this.isGet) {
+      let articleModel = this.model("cp_article");
+      let res = await articleModel.page(this.get("page") || 1, this.get("size") || 6).where({
+        type: 2
       }).order('id DESC').countSelect();
       if (think.isEmpty(res.data)) {
         this.success({
@@ -37,6 +62,7 @@ module.exports = class extends Base {
         desc: this.post("desc"),
         html: this.post("html"),
         type: this.post("type"),
+        url: this.post("url"),
         add_time: String(Date.now())
       }
       let error = this.checkParams(params, ["name", "desc", "html"]);
